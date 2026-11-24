@@ -9,6 +9,7 @@ metadata:
     app.kubernetes.io/instance: test
     app.kubernetes.io/version: 1.0.0
 spec:
+  storageClassName: manual
   accessModes:
     - ReadWriteOnce
   resources:

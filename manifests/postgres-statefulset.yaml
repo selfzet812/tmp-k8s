@@ -74,3 +74,6 @@ spec:
         - name: postgrespvc
           persistentVolumeClaim:
             claimName: postgres-pvc-01
+      securityContext:
+        runAsUser: 999
+        fsGroup: 999
