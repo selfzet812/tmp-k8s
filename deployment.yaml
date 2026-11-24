@@ -1,0 +1,63 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: my-app
+  namespace: devops-project
+  labels:
+    app.kubernetes.io/name: flowboard
+    app.kubernetes.io/version: v1.1
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: flowboard
+  template:
+    metadata:
+      name: flowboard
+      namespace: devops-project
+      labels:
+        app.kubernetes.io/name: flowboard
+        app.kubernetes.io/version: v1.1
+    spec:
+      imagePullSecrets:
+        - name: ghcr-login-secret
+      containers:
+        - name: flowboard
+          image: ghcr.io/selfzet812/testdjng:v1.1
+          command: [ 'gunicorn', '--bind', '0.0.0.0:8000', 'config.wsgi:application', '--workers', '3']
+          ports:
+            - containerPort: 8000
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "0.5"
+            limits:
+              memory: "512Mi"
+              cpu: "1"
+          livenessProbe:
+            tcpSocket:
+              port: 8000
+            initialDelaySeconds: 15
+            periodSeconds: 10
+          readinessProbe:
+            tcpSocket:
+              port: 8000
+            initialDelaySeconds: 15
+            periodSeconds: 10
+          envFrom:
+            - secretRef:
+                name: devops-secret-01
+            - configMapRef:
+                name: devops-cm-01
+          env:
+            - name: POSTGRES_USER
+              valueFrom:
+                configMapKeyRef:
+                  name: devops-cm-01
+                  key: DB_USER
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: devops-secret-01
+                  key: DB_PASSWORD

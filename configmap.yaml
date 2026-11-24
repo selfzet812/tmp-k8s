@@ -1,0 +1,25 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: devops-cm-01
+  namespace: devops-project
+data:
+  DJANGO_DEBUG: "False"
+  DJANGO_ALLOWED_HOSTS: "*"
+  POSTGRES_HOST: "headless-service-postgres"
+  POSTGRES_PORT: "5432"
+  POSTGRES_DB: "flowboard"
+  DB_USER: "ilya"
+
+
+# как альтернативный вариант это можно было сделать подобным образом 
+#  .env: |
+#    DJANGO_SECRET_KEY=django-insecure-change-me-in-production
+#    DJANGO_DEBUG=True
+#    DJANGO_ALLOWED_HOSTS=localhost,127.0.0.1,0.0.0.0,*
+#    POSTGRES_DB=flowboard
+#    POSTGRES_USER=postgres
+#    POSTGRES_PASSWORD=postgres
+#    POSTGRES_HOST=localhost
+#    POSTGRES_PORT=5432

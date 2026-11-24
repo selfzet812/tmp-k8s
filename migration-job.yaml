@@ -1,0 +1,44 @@
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: migration-jb
+  namespace: devops-project
+  labels:
+    app.kubernetes.io/name: migration-job
+    app.kubernetes.io/version: v1.0.0
+
+spec:
+  backoffLimit: 3
+  template:
+    spec:
+      imagePullSecrets:                     #конкретно с тем как ИМПОРТНУТЬ в манифест секреты от гита помог ИИ а 401ю нашел и понял суть проблемы и создал секреты сам
+        - name: ghcr-login-secret
+      restartPolicy: Never
+      containers:
+        - name: job
+          image: ghcr.io/selfzet812/testdjng:v1.1
+          command: [ 'python', 'manage.py', 'migrate', '--noinput' ]
+          resources:
+            requests:
+              cpu: "0.5"
+              memory: "256Mi"
+            limits:
+              cpu: "0.5"
+              memory: "512Mi"
+          envFrom:
+            - secretRef:
+                name: devops-secret-01
+            - configMapRef:
+                name: devops-cm-01
+          env:
+            - name: POSTGRES_USER
+              valueFrom:
+                configMapKeyRef:
+                  name: devops-cm-01
+                  key: DB_USER
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: devops-secret-01
+                  key: DB_PASSWORD

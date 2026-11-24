@@ -1,0 +1,76 @@
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: postgres
+  namespace: devops-project
+  labels:
+    app.kubernetes.io/name: postgres-st
+    app.kubernetes.io/version: v1.0
+spec:
+  replicas: 1
+  serviceName: headless-service-postgres 
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: postgres-st
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: postgres-st
+        app.kubernetes.io/version: v1.0
+    spec:
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: topology.kubernetes.io/forAffinity
+                    operator: In
+                    values:
+                      - postgres
+      containers:
+        - name: postgres
+          image: postgres:18
+          ports:
+            - containerPort: 5432
+          resources:
+            limits:
+              cpu: "1"
+              memory: "500Mi"
+            requests:
+              cpu: "0.5"
+              memory: "200Mi"
+          volumeMounts:
+            - mountPath: "/var/lib/postgresql/18/docker"
+              name: postgrespvc
+
+          env:
+            - name: POSTGRES_DB
+              valueFrom:
+                configMapKeyRef:
+                  name: devops-cm-01
+                  key:  POSTGRES_DB
+            - name: POSTGRES_USER
+              valueFrom:
+                configMapKeyRef:
+                  name: devops-cm-01
+                  key:  DB_USER
+            - name: POSTGRES_HOST
+              valueFrom:
+                configMapKeyRef:
+                  name: devops-cm-01
+                  key:  POSTGRES_HOST
+            - name: POSTGRES_PORT
+              valueFrom:
+                configMapKeyRef:
+                  name: devops-cm-01
+                  key:  POSTGRES_PORT
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: devops-secret-01 
+                  key:  DB_PASSWORD
+      volumes:
+        - name: postgrespvc
+          persistentVolumeClaim:
+            claimName: postgres-pvc-01
